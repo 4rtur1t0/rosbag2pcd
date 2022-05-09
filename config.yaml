@@ -1,0 +1,2 @@
+topic_name_point_cloud: "/points"
+topic_name_odometry: "/odometry/filtered"

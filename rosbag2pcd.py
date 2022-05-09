@@ -3,15 +3,17 @@ from sensor_msgs.msg import PointCloud2
 from nav_msgs.msg import Odometry
 from euroc.eurocsaver import EurocSaver
 import argparse
+import yaml
 
-# EXPERIMENT_PATH = './realdata/husky_playpen_1loop/'
-
+# Parse output directory
 parser = argparse.ArgumentParser()
 parser.add_argument("directory")
 args = parser.parse_args()
+print("OUTPUT DIRECTORY IS. ")
 print(args.directory)
 EXPERIMENT_PATH = args.directory
 
+# create EurocSaver object with output directory
 eurocsaver = EurocSaver(euroc_directory=EXPERIMENT_PATH)
 
 odom_msgs = []
@@ -27,6 +29,10 @@ def callback_odometry(odometry):
 
 
 def callback_roscloud(ros_cloud):
+    """
+    Saving pointcloud to file.
+    Saving epoch to a list that is saved later.
+    """
     point_cloud_epochs.append(str(ros_cloud.header.stamp))
     eurocsaver.save_cloud(ros_cloud)
     rospy.loginfo("-- Write result point cloud to: ")
@@ -34,6 +40,9 @@ def callback_roscloud(ros_cloud):
 
 
 def save_data():
+    """
+    Saving odometry and point cloud epochs to csv file.
+    """
     if len(odom_msgs) > 0:
         eurocsaver.save_odometry(odom_msgs)
     if len(point_cloud_epochs) > 0:
@@ -44,14 +53,20 @@ if __name__ == "__main__":
     """
     Use argv to get topic and path
     """
+    with open(r'config.yaml') as file:
+        param_list = yaml.load(file, Loader=yaml.FullLoader)
+        print(param_list)
 
+    # topic_name_point_cloud = "/points"
+    # topic_name_odometry = "/odometry/filtered"
+    topic_name_point_cloud = param_list.get('topic_name_point_cloud')
+    topic_name_odometry = param_list.get('topic_name_odometry')
+    print('POINT CLOUD TOPIC: ', topic_name_point_cloud)
+    print('ODOMETRY TOPIC: ', topic_name_odometry)
 
-    topic_name_point_cloud = "/points"
-    topic_name_odo = "/odometry/filtered"
-
-    rospy.init_node('Open3D_and_ROS_conversion', anonymous=True)
+    rospy.init_node('ROSBAG2PCD', anonymous=True)
     rospy.Subscriber(topic_name_point_cloud, PointCloud2, callback_roscloud)
-    rospy.Subscriber(topic_name_odo, Odometry, callback_odometry)
+    rospy.Subscriber(topic_name_odometry, Odometry, callback_odometry)
 
     while not rospy.core.is_shutdown():
         rospy.rostime.wallsleep(.5)
