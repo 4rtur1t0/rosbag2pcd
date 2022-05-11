@@ -1,6 +1,8 @@
 PYTHON_INTERPRETER=/home/arvc/Applications/venv/bin/python
-DATASETS='/media/arvc/INTENSO/DATASETS'
+DIRECTORY='/media/arvc/INTENSO/DATASETS/dos_vueltas'
+FILENAME=$DIRECTORY/dos_vueltas.bag
 killall roscore
 roscore &
-rosbag play -d 2 $DATASETS/husky_playpen_1loop/husky_playpen_1loop.bag &
-$PYTHON_INTERPRETER rosbag2pcd.py $DATASETS/husky_playpen_1loop
+rosbag play --clock -d 2 $FILENAME &
+$PYTHON_INTERPRETER rosbag2pcd.py $DIRECTORY &
+$PYTHON_INTERPRETER rosbag2groundtruth.py $DIRECTORY &

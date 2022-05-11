@@ -14,21 +14,25 @@ class EurocSaver():
         self.odometry_directory = euroc_directory + '/robot0/odom'
         self.imu_directory = euroc_directory + '/robot0/imu0'
         self.gps_directory = euroc_directory + '/robot0/gps0'
-        self.lidar_directory = euroc_directory + '/robot0/lidar/data'
+        self.lidar_directory = euroc_directory + '/robot0/lidar'
+        self.ground_truth_directory = euroc_directory + '/robot0/ground_truth'
 
         try:
-            os.makedirs(self.lidar_directory)
+            os.makedirs(self.lidar_directory + '/data')
         except OSError:
             print("Directory exists or creation failed", self.lidar_directory)
         try:
             os.makedirs(self.odometry_directory)
         except OSError:
-            print("Directory exists or creation failed", self.euroc_directory)
-
+            print("Directory exists or creation failed", self.odometry_directory)
         try:
-            os.makedirs(self.euroc_directory + '/robot0/' + '/gps0')
+            os.makedirs(self.gps_directory)
         except OSError:
-            print("Directory exists or creation failed", self.euroc_directory)
+            print("Directory exists or creation failed", self.gps_directory)
+        try:
+            os.makedirs(self.ground_truth_directory)
+        except OSError:
+            print("Directory exists or creation failed", self.ground_truth_directory)
 
     def save_gps(self, gps_data):
         lat_list = []
@@ -39,7 +43,6 @@ class EurocSaver():
             print('Completed: ', 100.0 * i / len(gps_data.data_list), '%', end='\r')
             tiempo = int(gps_data.epoch_list[i]*1000*1000*1000)
             s1 = f'{tiempo:013d}'
-            #1403715273262142976
             epoch_list.append(s1)
             lat_list.append(gps_data.data_list[i].lat)
             lng_list.append(gps_data.data_list[i].lng)
@@ -50,7 +53,7 @@ class EurocSaver():
                     'lng': lng_list,
                     'altitude': altitude_list}
         df = pd.DataFrame(raw_data, columns=['timestamp', 'lat', 'lng', 'altitude'])
-        df.to_csv(self.euroc_directory+'/robot0/'+'/gps0/data.csv', index=False, header=['#timestamp [ns]', 'lat', 'lng', 'altitude'])
+        df.to_csv(self.gps_directory + '/data.csv', index=False, header=['#timestamp [ns]', 'lat', 'lng', 'altitude'])
         print('\n---')
 
     def save_odometry(self, odom_msgs):
@@ -86,7 +89,7 @@ class EurocSaver():
                     'qw': q_list[:, 3]
                     }
         df = pd.DataFrame(raw_data, columns=['timestamp', 'x', 'y', 'z', 'qx', 'qy', 'qz', 'qw'])
-        df.to_csv(self.euroc_directory+'/robot0/'+'/odom/data.csv', index=False, header=['#timestamp [ns]',
+        df.to_csv(self.odometry_directory + '/data.csv', index=False, header=['#timestamp [ns]',
                                                                                        'x', 'y', 'z',
                                                                                        'qx', 'qy', 'qz', 'qw'])
         print('\n---')
@@ -105,7 +108,7 @@ class EurocSaver():
         pointcloud = o3d.geometry.PointCloud()
         pointcloud.points = o3d.utility.Vector3dVector(pcd_array)
 
-        output_directory = self.euroc_directory + '/robot0/' + '/lidar/data/'
+        output_directory = self.lidar_directory + '/data/'
         output_filename = output_directory + time_str + ".pcd"
 
         o3d.io.write_point_cloud(output_filename, pointcloud)
@@ -115,7 +118,41 @@ class EurocSaver():
     def save_cloud_times(self, ros_cloud_epoch_times):
         raw_data = {'timestamp': ros_cloud_epoch_times}
         df = pd.DataFrame(raw_data, columns=['timestamp'])
-        df.to_csv(self.euroc_directory + '/robot0/' + '/lidar/data.csv', index=False, header=['#timestamp [ns]'])
+        df.to_csv(self.lidar_directory + '/data.csv', index=False, header=['#timestamp [ns]'])
         print('\n---')
 
+    def save_ground_truth(self, model_states, model_states_times):
+        i = 0
+        epoch_list = []
+        # list of xyz positions and quaternions
+        xyz_list = []
+        q_list = []
+
+        for gt_msg in model_states:
+            print('Completed: ', 100.0 * i / len(model_states), '%', end='\r')
+            position = gt_msg.position
+            orientation = gt_msg.orientation
+            # header = gt_msg.transforms[0].header
+            time_str = str(model_states_times[i].clock)
+            epoch_list.append(time_str)
+            xyz_list.append([position.x, position.y, position.z])
+            q_list.append([orientation.x, orientation.y, orientation.z, orientation.w])
+            i += 1
+
+        xyz_list = np.array(xyz_list)
+        q_list = np.array(q_list)
+        raw_data = {'timestamp': epoch_list,
+                    'x': xyz_list[:, 0],
+                    'y': xyz_list[:, 1],
+                    'z': xyz_list[:, 2],
+                    'qx': q_list[:, 0],
+                    'qy': q_list[:, 1],
+                    'qz': q_list[:, 2],
+                    'qw': q_list[:, 3]
+                    }
+        df = pd.DataFrame(raw_data, columns=['timestamp', 'x', 'y', 'z', 'qx', 'qy', 'qz', 'qw'])
+        df.to_csv(self.ground_truth_directory + '/data.csv', index=False, header=['#timestamp [ns]',
+                                                                                    'x', 'y', 'z',
+                                                                                    'qx', 'qy', 'qz', 'qw'])
+        print('\n---')
 
