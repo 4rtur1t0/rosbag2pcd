@@ -8,3 +8,13 @@ the point clouds. The rosbag2pcd.py script subscribes to the topics and saves da
 
 Edit convert.sh to include the OUTPUT DIRECTORY and rosbag filename.
 Edit config.yaml to include the topics in the rosbag
+
+
+# INSTALL
+
+pip install pandas
+pip install argparse
+
+Install ROS
+sudo apt-get install python3-sensor-msgs ros-noetic-sensor-msgs
+sudo apt-get install python3-nav-msgs ros-noetic-nav-msgs

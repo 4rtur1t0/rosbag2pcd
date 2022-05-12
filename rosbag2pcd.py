@@ -19,10 +19,16 @@ eurocsaver = EurocSaver(euroc_directory=EXPERIMENT_PATH)
 # lists of messages
 odom_msgs = []
 ground_truth_msgs = []
-ground_truth_msgs_times = []
+# ground_truth_msgs_times = []
 imu_msgs = []
 gps_msgs = []
 point_cloud_epochs = []
+
+
+def callback_ground_truth(gt):
+    print("ROS GROUND TRUTH received", end='')
+    ground_truth_msgs.append(gt)
+    return True
 
 
 def callback_odometry(odometry):
@@ -50,6 +56,8 @@ def save_data():
         eurocsaver.save_odometry(odom_msgs)
     if len(point_cloud_epochs) > 0:
         eurocsaver.save_cloud_times(ros_cloud_epoch_times=point_cloud_epochs)
+    if len(ground_truth_msgs) > 0:
+        eurocsaver.save_ground_truth(ground_truth_msgs)
 
 
 if __name__ == "__main__":
@@ -62,12 +70,14 @@ if __name__ == "__main__":
 
     topic_name_point_cloud = param_list.get('topic_name_point_cloud')
     topic_name_odometry = param_list.get('topic_name_odometry')
+    topic_name_ground_truth = param_list.get('topic_name_ground_truth')
 
     print('POINT CLOUD TOPIC: ', topic_name_point_cloud)
     print('ODOMETRY TOPIC: ', topic_name_odometry)
     rospy.init_node('ROSBAG2PCD', anonymous=True)
     rospy.Subscriber(topic_name_point_cloud, PointCloud2, callback_roscloud)
     rospy.Subscriber(topic_name_odometry, Odometry, callback_odometry)
+    rospy.Subscriber(topic_name_ground_truth, Odometry, callback_ground_truth)
 
     while not rospy.core.is_shutdown():
         rospy.rostime.wallsleep(5.0)

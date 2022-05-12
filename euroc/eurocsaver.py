@@ -121,24 +121,27 @@ class EurocSaver():
         df.to_csv(self.lidar_directory + '/data.csv', index=False, header=['#timestamp [ns]'])
         print('\n---')
 
-    def save_ground_truth(self, model_states, model_states_times):
+    def save_ground_truth(self, ground_truth_msgs):
+        """
+        Save a list of odometry msgs to csv in EUROC format.
+        :param odom_msgs:
+        :return:
+        """
         i = 0
         epoch_list = []
         # list of xyz positions and quaternions
         xyz_list = []
         q_list = []
 
-        for gt_msg in model_states:
-            print('Completed: ', 100.0 * i / len(model_states), '%', end='\r')
-            position = gt_msg.position
-            orientation = gt_msg.orientation
-            # header = gt_msg.transforms[0].header
-            time_str = str(model_states_times[i].clock)
+        for odo_msg in ground_truth_msgs:
+            print('Completed: ', 100.0 * i / len(ground_truth_msgs), '%', end='\r')
+            time_str = str(odo_msg.header.stamp)
+            # Odometry.
             epoch_list.append(time_str)
-            xyz_list.append([position.x, position.y, position.z])
-            q_list.append([orientation.x, orientation.y, orientation.z, orientation.w])
+            xyz_list.append([odo_msg.pose.pose.position.x, odo_msg.pose.pose.position.y, odo_msg.pose.pose.position.z])
+            q_list.append([odo_msg.pose.pose.orientation.x, odo_msg.pose.pose.orientation.y, odo_msg.pose.pose.orientation.z,
+                           odo_msg.pose.pose.orientation.w])
             i += 1
-
         xyz_list = np.array(xyz_list)
         q_list = np.array(q_list)
         raw_data = {'timestamp': epoch_list,
@@ -152,7 +155,7 @@ class EurocSaver():
                     }
         df = pd.DataFrame(raw_data, columns=['timestamp', 'x', 'y', 'z', 'qx', 'qy', 'qz', 'qw'])
         df.to_csv(self.ground_truth_directory + '/data.csv', index=False, header=['#timestamp [ns]',
-                                                                                    'x', 'y', 'z',
-                                                                                    'qx', 'qy', 'qz', 'qw'])
+                                                                                  'x', 'y', 'z',
+                                                                                  'qx', 'qy', 'qz', 'qw'])
         print('\n---')
 

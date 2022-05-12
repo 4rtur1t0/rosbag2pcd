@@ -1,8 +1,8 @@
 PYTHON_INTERPRETER=/home/arvc/Applications/venv/bin/python
-DIRECTORY='/media/arvc/INTENSO/DATASETS/dos_vueltas'
-FILENAME=$DIRECTORY/dos_vueltas.bag
+OUTPUTDIRECTORY='/media/arvc/INTENSO/DATASETS/dos_vueltas2'
+ROSBAGFILENAME=$OUTPUTDIRECTORY/dos_vueltas2.bag
+echo $ROSBAGFILENAME
 killall roscore
 roscore &
-rosbag play --clock -d 2 $FILENAME &
-$PYTHON_INTERPRETER rosbag2pcd.py $DIRECTORY &
-$PYTHON_INTERPRETER rosbag2groundtruth.py $DIRECTORY &
+rosbag play --clock -d 2 $ROSBAGFILENAME &
+$PYTHON_INTERPRETER rosbag2pcd.py $OUTPUTDIRECTORY &
