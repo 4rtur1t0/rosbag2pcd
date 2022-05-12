@@ -1,3 +1,3 @@
 topic_name_point_cloud: "/os1/pointCloud"
 topic_name_odometry: "/odometry/filtered"
-topic_name_ground_truth: "/husky_ground_truth_position"
+topic_name_ground_truth: "/ground_truth/state"
