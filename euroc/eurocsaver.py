@@ -34,27 +34,27 @@ class EurocSaver():
         except OSError:
             print("Directory exists or creation failed", self.ground_truth_directory)
 
-    def save_gps(self, gps_data):
-        lat_list = []
-        lng_list = []
-        altitude_list = []
-        epoch_list = []
-        for i in range(0, len(gps_data.data_list), 1):
-            print('Completed: ', 100.0 * i / len(gps_data.data_list), '%', end='\r')
-            tiempo = int(gps_data.epoch_list[i]*1000*1000*1000)
-            s1 = f'{tiempo:013d}'
-            epoch_list.append(s1)
-            lat_list.append(gps_data.data_list[i].lat)
-            lng_list.append(gps_data.data_list[i].lng)
-            altitude_list.append(gps_data.data_list[i].altitude)
-
-        raw_data = {'timestamp': epoch_list,
-                    'lat': lat_list,
-                    'lng': lng_list,
-                    'altitude': altitude_list}
-        df = pd.DataFrame(raw_data, columns=['timestamp', 'lat', 'lng', 'altitude'])
-        df.to_csv(self.gps_directory + '/data.csv', index=False, header=['#timestamp [ns]', 'lat', 'lng', 'altitude'])
-        print('\n---')
+    # def save_gps(self, gps_data):
+    #     lat_list = []
+    #     lng_list = []
+    #     altitude_list = []
+    #     epoch_list = []
+    #     for i in range(0, len(gps_data.data_list), 1):
+    #         print('Completed: ', 100.0 * i / len(gps_data.data_list), '%', end='\r')
+    #         tiempo = int(gps_data.epoch_list[i]*1000*1000*1000)
+    #         s1 = f'{tiempo:013d}'
+    #         epoch_list.append(s1)
+    #         lat_list.append(gps_data.data_list[i].lat)
+    #         lng_list.append(gps_data.data_list[i].lng)
+    #         altitude_list.append(gps_data.data_list[i].altitude)
+    #
+    #     raw_data = {'timestamp': epoch_list,
+    #                 'lat': lat_list,
+    #                 'lng': lng_list,
+    #                 'altitude': altitude_list}
+    #     df = pd.DataFrame(raw_data, columns=['timestamp', 'lat', 'lng', 'altitude'])
+    #     df.to_csv(self.gps_directory + '/data.csv', index=False, header=['#timestamp [ns]', 'lat', 'lng', 'altitude'])
+    #     print('\n---')
 
     def save_odometry(self, odom_msgs):
         """
@@ -159,3 +159,40 @@ class EurocSaver():
                                                                                   'qx', 'qy', 'qz', 'qw'])
         print('\n---')
 
+    def save_gps(self, gps_msgs):
+        """
+        Save a list of gps
+        :param odom_msgs:
+        :return:
+        """
+        i = 0
+        epoch_list = []
+        # list of xyz positions and quaternions
+        xyz_list = []
+        q_list = []
+
+        for odo_msg in odom_msgs:
+            print('Completed: ', 100.0 * i / len(odom_msgs), '%', end='\r')
+            time_str = str(odo_msg.header.stamp)
+            # Odometry.
+            epoch_list.append(time_str)
+            xyz_list.append([odo_msg.pose.pose.position.x, odo_msg.pose.pose.position.y, odo_msg.pose.pose.position.z])
+            q_list.append([odo_msg.pose.pose.orientation.x, odo_msg.pose.pose.orientation.y, odo_msg.pose.pose.orientation.z,
+                           odo_msg.pose.pose.orientation.w])
+            i += 1
+        xyz_list = np.array(xyz_list)
+        q_list = np.array(q_list)
+        raw_data = {'timestamp': epoch_list,
+                    'x': xyz_list[:, 0],
+                    'y': xyz_list[:, 1],
+                    'z': xyz_list[:, 2],
+                    'qx': q_list[:, 0],
+                    'qy': q_list[:, 1],
+                    'qz': q_list[:, 2],
+                    'qw': q_list[:, 3]
+                    }
+        df = pd.DataFrame(raw_data, columns=['timestamp', 'x', 'y', 'z', 'qx', 'qy', 'qz', 'qw'])
+        df.to_csv(self.gps_directory + '/data.csv', index=False, header=['#timestamp [ns]',
+                                                                                       'x', 'y', 'z',
+                                                                                       'qx', 'qy', 'qz', 'qw'])
+        print('\n---')

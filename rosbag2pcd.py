@@ -47,6 +47,11 @@ def callback_roscloud(ros_cloud):
     eurocsaver.save_cloud(ros_cloud)
     return True
 
+def callback_gps(gps):
+    print("GPS received", end='')
+    gps_msgs.append(gps)
+    return True
+
 
 def save_data():
     """
@@ -58,7 +63,8 @@ def save_data():
         eurocsaver.save_cloud_times(ros_cloud_epoch_times=point_cloud_epochs)
     if len(ground_truth_msgs) > 0:
         eurocsaver.save_ground_truth(ground_truth_msgs)
-
+    if len(gps_msgs) > 0:
+        eurocsaver.save_gps(gps_msgs)
 
 if __name__ == "__main__":
     """
@@ -68,16 +74,19 @@ if __name__ == "__main__":
         param_list = yaml.load(file, Loader=yaml.FullLoader)
         print(param_list)
 
+    topic_name_ground_truth = param_list.get('topic_name_ground_truth')
     topic_name_point_cloud = param_list.get('topic_name_point_cloud')
     topic_name_odometry = param_list.get('topic_name_odometry')
-    topic_name_ground_truth = param_list.get('topic_name_ground_truth')
+    topic_name_gps = param_list.get('topic_name_gps')
 
     print('POINT CLOUD TOPIC: ', topic_name_point_cloud)
     print('ODOMETRY TOPIC: ', topic_name_odometry)
+    print('GPS TOPIC: ', topic_name_gps)
     rospy.init_node('ROSBAG2PCD', anonymous=True)
     rospy.Subscriber(topic_name_point_cloud, PointCloud2, callback_roscloud)
     rospy.Subscriber(topic_name_odometry, Odometry, callback_odometry)
     rospy.Subscriber(topic_name_ground_truth, Odometry, callback_ground_truth)
+    rospy.Subscriber(topic_name_gps, NavsatFix, callback_ground_truth)
 
     while not rospy.core.is_shutdown():
         rospy.rostime.wallsleep(5.0)

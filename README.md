@@ -9,6 +9,8 @@ the point clouds. The rosbag2pcd.py script subscribes to the topics and saves da
 Edit convert.sh to include the OUTPUT DIRECTORY and rosbag filename.
 Edit config.yaml to include the topics in the rosbag
 
+CAUTION: The conversion uses the rosbag application to publish data in the ROS ecosystem. Thus, only one conversion 
+should be carried out at any time. 
 
 # INSTALL
 
