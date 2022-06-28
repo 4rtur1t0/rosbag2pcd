@@ -90,8 +90,8 @@ class EurocSaver():
                     }
         df = pd.DataFrame(raw_data, columns=['timestamp', 'x', 'y', 'z', 'qx', 'qy', 'qz', 'qw'])
         df.to_csv(self.odometry_directory + '/data.csv', index=False, header=['#timestamp [ns]',
-                                                                                       'x', 'y', 'z',
-                                                                                       'qx', 'qy', 'qz', 'qw'])
+                                                                              'x', 'y', 'z',
+                                                                               'qx', 'qy', 'qz', 'qw'])
         print('\n---')
 
     def save_cloud(self, ros_cloud):
@@ -229,8 +229,8 @@ class EurocSaver():
                     'covariance_d3': covariance_list[:, 2]
                     }
         df = pd.DataFrame(raw_data,
-                          columns=['timestamp', 'latitude', 'longitude', 'altitude', 'covariance_d1', 'covariance_d2',
-                                   'covariance_d3'])
+                          columns=['timestamp', 'latitude', 'longitude', 'altitude',
+                                   'covariance_d1', 'covariance_d2', 'covariance_d3'])
         df.to_csv(self.gps_directory + '/data.csv', index=False,
                   header=['#timestamp [ns]', 'latitude', 'longitude', 'altitude',
                           'covariance_d1', 'covariance_d2', 'covariance_d3'])
